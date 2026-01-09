@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regime Game Debugger</title>
+    <style>
+        body { font-family: monospace; background: #222; color: #0f0; padding: 20px; }
+        .panel { border: 1px solid #444; padding: 10px; margin-bottom: 10px; }
+        button { background: #0f0; color: #000; border: none; padding: 5px 10px; cursor: pointer; }
+        button:hover { background: #0a0; }
+        input { background: #333; border: 1px solid #555; color: #fff; padding: 5px; }
+        #logs { height: 300px; overflow-y: scroll; border: 1px solid #555; padding: 10px; background: #000; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #333; }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>System Terminal</h1>
+    
+    <div class="panel">
+        <h3>Professor Controls</h3>
+        <button onclick="createSession()">Create Session</button>
+        <button onclick="lockSession()">Lock Session</button>
+        <button onclick="startRound()">Start Round</button>
+        <div id="session-info">Session ID: <span id="sess-id">Wait...</span></div>
+    </div>
+
+    <div class="panel">
+        <h3>Student emulation</h3>
+        <input type="text" id="p-name" placeholder="Enter Name">
+        <button onclick="joinSession()">Join as Student</button>
+        <div id="my-role">Role: None</div>
+    </div>
+
+    <div id="logs"></div>
+
+    <script>
+        const socket = io();
+        let currentSessionId = '';
+
+        function log(msg, data = '') {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerText = `> ${msg} ${typeof data === 'object' ? JSON.stringify(data) : data}`;
+            document.getElementById('logs').prepend(div);
+        }
+
+        socket.on('connect', () => log('Connected to Server', socket.id));
+        
+        socket.on('session_created', (data) => {
+            currentSessionId = data.sessionId;
+            document.getElementById('sess-id').innerText = currentSessionId;
+            log('Session Created', data);
+        });
+
+        socket.on('joined', (data) => log('Joined Session', data));
+        
+        socket.on('participant_list', (data) => log('Participants Updated', data.length + ' active'));
+        
+        socket.on('game_started', (data) => log('Game Started/Locked', data));
+        
+        socket.on('role_assigned', (data) => {
+            document.getElementById('my-role').innerText = `Role: ${data.role} (${data.position || ''})`;
+            log('Received Role', data);
+        });
+
+        socket.on('start_allocation', (data) => log('Leader: Allocation Phase Started', data));
+        
+        socket.on('state_update', (data) => log('State Update', data));
+
+        function createSession() {
+            socket.emit('create_session');
+        }
+
+        function joinSession() {
+            const name = document.getElementById('p-name').value || 'Student';
+            if(!currentSessionId) return alert('Create session first');
+            // Mock a new connection for specific student would require new socket in browser
+            // For debug, we re-use same socket, so "Professor" becomes "Student" too. 
+            // In real usage, these are different devices.
+            // Be aware: existing socket will represent the student now.
+            socket.emit('join_session', { sessionId: currentSessionId, name: name });
+        }
+
+        function lockSession() {
+            if(!currentSessionId) return;
+            socket.emit('lock_session', { sessionId: currentSessionId });
+        }
+        
+        function startRound() {
+             if(!currentSessionId) return;
+             socket.emit('start_round', { sessionId: currentSessionId });
+        }
+    </script>
+</body>
+</html>

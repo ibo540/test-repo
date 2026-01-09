@@ -1,0 +1,149 @@
+"use client"
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSocket } from "@/components/game/SocketProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { AppShell } from "@/components/game/AppShell";
+import { TopBar } from "@/components/game/TopBar";
+import { motion } from "framer-motion";
+import { ShieldAlert, Users, Play, Lock } from "lucide-react";
+
+export default function JoinPage() {
+    const { isConnected, joinSession, participant, gameState } = useSocket() || {};
+    const [code, setCode] = useState("");
+    const [name, setName] = useState("");
+    const [error, setError] = useState("");
+    const [isWaiting, setIsWaiting] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        // Auto-fill session from URL query if present (QR code)
+        const params = new URLSearchParams(window.location.search);
+        const urlCode = params.get("code");
+        if (urlCode) setCode(urlCode);
+    }, []);
+
+    useEffect(() => {
+        if (participant?.role) {
+            // Redirect based on role
+            const role = participant.role.toLowerCase();
+            router.push(`/${role}`);
+        } else if (participant?.name) {
+            setIsWaiting(true);
+        }
+    }, [participant, router]);
+
+    const handleJoin = () => {
+        if (!code) { setError("Session Code is required"); return; }
+        if (!name) { setError("Name is required"); return; }
+
+        // Mock session ID validation on client? No, sends to server.
+        // We assume create_session happened elsewhere for now.
+        // User is STUDENT usually.
+
+        joinSession?.(code.toUpperCase(), name);
+        // We wait for 'joined' event or 'role_assigned'. 
+        // SocketProvider optimistically sets participant.
+    };
+
+    // If we are waiting for role assignment
+    if (isWaiting) {
+        return (
+            <AppShell header={<TopBar hideRole />}>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
+                    <motion.div
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                        className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center text-accent"
+                    >
+                        <Users size={40} />
+                    </motion.div>
+                    <div>
+                        <h2 className="text-2xl font-bold">Welcome, {name}</h2>
+                        <p className="text-muted-foreground mt-2">Waiting for the Professor to start the game...</p>
+                    </div>
+                    <Card className="w-full max-w-md bg-surface/50 border-white/5">
+                        <CardHeader>
+                            <CardTitle className="text-base">Session {code}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Status</span>
+                                <span className="text-warning">Lobby Open</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Players</span>
+                                <span>{gameState?.participants ? Object.keys(gameState.participants).length : '-'}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </AppShell>
+        );
+    }
+
+    return (
+        <AppShell>
+            <div className="flex flex-col items-center justify-center min-h-[80vh] w-full">
+                <div className="mb-8 text-center space-y-2">
+                    <ShieldAlert className="w-16 h-16 mx-auto text-accent mb-4" />
+                    <h1 className="text-4xl font-bold tracking-tight">Regime</h1>
+                    <p className="text-muted-foreground">Classroom Authoritarian Simulation</p>
+                </div>
+
+                <Card className="w-full max-w-md border-surface-2 bg-surface">
+                    <CardHeader>
+                        <CardTitle>Join Session</CardTitle>
+                        <CardDescription>Enter the code on the projector to join.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground">Session Code</label>
+                            <Input
+                                placeholder="e.g. A7X2"
+                                className="text-center font-mono text-lg uppercase tracking-widest h-12 bg-background border-surface-2 focus:border-accent"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                                maxLength={6}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground">Name</label>
+                            <Input
+                                placeholder="Your Name"
+                                className="h-12 bg-background border-surface-2 focus:border-accent"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                        </div>
+                        {error && <p className="text-sm text-danger">{error}</p>}
+                    </CardContent>
+                    <CardFooter>
+                        <Button
+                            className="w-full h-12 text-lg font-bold bg-accent hover:bg-accent/90 text-white"
+                            onClick={handleJoin}
+                            disabled={!isConnected}
+                        >
+                            {isConnected ? "Join Game" : "Connecting..."}
+                        </Button>
+                    </CardFooter>
+                </Card>
+
+                <div className="mt-8 max-w-md w-full">
+                    <div className="text-xs text-center text-muted-foreground mb-4 uppercase tracking-widest">Or login as</div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button variant="outline" className="w-full" onClick={() => router.push('/professor')}>
+                            Professor
+                        </Button>
+                        <Button variant="outline" className="w-full" onClick={() => router.push('/projector')}>
+                            Projector
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </AppShell>
+    );
+}
