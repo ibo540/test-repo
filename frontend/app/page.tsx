@@ -109,7 +109,6 @@ export default function JoinPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    )}
                 </div>
             </AppShell>
         );
