@@ -42,12 +42,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const [participant, setParticipant] = useState<any | null>(null);
 
     useEffect(() => {
-        // Dynamic connection string for local network testing
+        // Dynamic connection string
         const protocol = window.location.protocol;
         const hostname = window.location.hostname;
-        const backendPort = '3000'; // Assuming backend determines port or is fixed
-        // If we are on port 3001 (frontend), backend is likely on 3000 on same host
-        const url = `${protocol}//${hostname}:${backendPort}`;
+
+        let url = '';
+        if (hostname.includes('vercel.app')) {
+            // Production Backend
+            url = 'https://test-repo-3aix.onrender.com';
+        } else {
+            // Local Development
+            const backendPort = '3000';
+            url = `${protocol}//${hostname}:${backendPort}`;
+        }
 
         const socketInstance = io(url, {
             transports: ['websocket'],
