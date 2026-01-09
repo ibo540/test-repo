@@ -176,6 +176,7 @@ export class GameEngine {
     private emitState(session: Session) {
         // Mask private data for general broadcast
         const publicState = {
+            sessionId: session.id, // Ensure session ID is always sent
             round: session.currentRound,
             phase: session.currentPhase,
             phaseEndTime: session.phaseEndTime,

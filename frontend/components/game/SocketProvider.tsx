@@ -161,10 +161,30 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         profiles[deviceId] = name;
         localStorage.setItem('auth_game_profiles', JSON.stringify(profiles));
 
+        // PERSIST SESSION ID
+        localStorage.setItem('auth_game_last_session', sessionId);
+
         socket?.emit('join_session', { sessionId, name, deviceId });
         // Optimistic update identity?
         setParticipant({ name, deviceId });
     };
+
+    // AUTO-REJOIN LOGIC
+    useEffect(() => {
+        if (isConnected && socket) {
+            const lastSession = localStorage.getItem('auth_game_last_session');
+            const deviceId = getDeviceId();
+            const profiles = JSON.parse(localStorage.getItem('auth_game_profiles') || '{}');
+            const name = profiles[deviceId];
+
+            // Only auto-join if we have session AND name, and we aren't already in logic
+            // We check !gameState.sessionId to ensure we don't double join if state is already there
+            if (lastSession && name && !gameState.sessionId) {
+                console.log("Auto-rejoining session:", lastSession);
+                socket.emit('join_session', { sessionId: lastSession, name, deviceId });
+            }
+        }
+    }, [isConnected, socket]);
 
     return (
         <SocketContext.Provider value={{
