@@ -107,8 +107,19 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             // We joined
         });
 
+        socketInstance.on('reconnect_success', (data) => {
+            if (data?.participant) setParticipant(data.participant);
+        });
+
         socketInstance.on('state_update', (data) => {
             setGameState(prev => ({ ...prev, ...data }));
+        });
+
+        socketInstance.on('participant_list', (data) => {
+            setGameState(prev => ({
+                ...prev,
+                participants: data
+            }));
         });
 
         socketInstance.on('role_assigned', (data) => {
@@ -118,6 +129,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         setSocket(socketInstance);
 
         return () => {
+            socketInstance.off('connect');
+            socketInstance.off('disconnect');
+            socketInstance.off('session_created');
+            socketInstance.off('joined');
+            socketInstance.off('reconnect_success');
+            socketInstance.off('state_update');
+            socketInstance.off('participant_list');
+            socketInstance.off('role_assigned');
             socketInstance.disconnect();
         };
     }, []);
