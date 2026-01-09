@@ -28,7 +28,7 @@ export default function ElitePage() {
     // Backend "Private updates to specific devices". 
     // We need to ensuring receiving 'external_offer' event or checking state.
 
-    const isDecisionPhase = gameState?.phase === 'DECISION';
+    const isDecisionPhase = gameState?.phase === 'DECISION' || gameState?.phase === 'ALLOCATION_REVEAL';
 
     if (!isDecisionPhase) {
         return (
@@ -49,7 +49,7 @@ export default function ElitePage() {
         );
     }
 
-    if (hasVoted) {
+    if (hasVoted && gameState?.phase === 'DECISION') {
         return (
             <AppShell header={<TopBar role="Elite" />}>
                 <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
@@ -71,11 +71,15 @@ export default function ElitePage() {
                     <CardContent className="space-y-4">
                         <div className="flex justify-between border-b border-white/5 pb-2">
                             <span>Your Rent</span>
-                            <span className="font-bold text-success">₪{gameState?.allocation?.privateRents?.[socket?.id || ''] || 0}</span>
+                            <span className="font-bold text-success">₪{gameState?.allocation?.privateRents?.[socket?.id || ''] || gameState?.allocation?.privateRents?.[participant?.id || ''] || 0}</span>
                         </div>
                         <div className="flex justify-between border-b border-white/5 pb-2">
                             <span>Public Spending</span>
                             <span className="font-bold">₪{gameState?.allocation?.publicSpending || 0}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-white/5 pb-2">
+                            <span>Coercion Level</span>
+                            <span className="font-bold text-danger">{gameState?.allocation?.coercionLevel || 0}/10</span>
                         </div>
                     </CardContent>
                 </Card>

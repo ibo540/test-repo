@@ -21,7 +21,7 @@ export default function CitizenPage() {
         setHasActed(true);
     };
 
-    const isDecisionPhase = gameState?.phase === 'DECISION';
+    const isDecisionPhase = gameState?.phase === 'DECISION' || gameState?.phase === 'ALLOCATION_REVEAL';
 
     if (!isDecisionPhase) {
         return (
@@ -34,7 +34,7 @@ export default function CitizenPage() {
         );
     }
 
-    if (hasActed) {
+    if (hasActed && gameState?.phase === 'DECISION') {
         return (
             <AppShell header={<TopBar role="Citizen" />}>
                 <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
@@ -45,14 +45,54 @@ export default function CitizenPage() {
         );
     }
 
+    // Calculations
+    const publicSpending = gameState?.allocation?.publicSpending || 0;
+    const myBenefit = Math.round(publicSpending * 0.2); // 20% rule
+
+    const rents = gameState?.allocation?.privateRents ? Object.values(gameState.allocation.privateRents) : [];
+    // @ts-ignore
+    const eliteTotal = rents.reduce((a, b) => a + b, 0);
+    const eliteMax = rents.length > 0 ? Math.max(...rents as number[]) : 0;
+    const eliteAvg = rents.length > 0 ? Math.round(eliteTotal / rents.length) : 0;
+
     return (
         <AppShell header={<TopBar role="Citizen" />}>
             <div className="space-y-8 max-w-md mx-auto pt-10">
                 <Card className="bg-surface-2 border-none">
-                    <CardHeader><CardTitle className="text-center">Public Welfare</CardTitle></CardHeader>
-                    <CardContent className="text-center">
-                        <div className="text-5xl font-bold text-primary">₪{gameState?.allocation?.publicSpending || 0}</div>
-                        <p className="text-muted-foreground mt-2">Allocated to public goods this round.</p>
+                    <CardHeader><CardTitle className="text-center">Your Welfare</CardTitle></CardHeader>
+                    <CardContent className="text-center space-y-4">
+                        <div>
+                            <div className="text-xs text-muted-foreground uppercase">Public Goods Benefit</div>
+                            <div className="text-5xl font-bold text-primary">₪{myBenefit}</div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                            <div>
+                                <div className="text-xs text-muted-foreground">Total Public</div>
+                                <div className="font-bold">₪{publicSpending}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-muted-foreground">Tax Rate</div>
+                                <div className="font-bold text-danger">High</div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-surface-2 border-none">
+                    <CardHeader className="pb-2"><CardTitle className="text-center text-sm">Elite Wealth Watch</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div>
+                            <div className="text-muted-foreground">Total Rents</div>
+                            <div className="font-bold text-accent">₪{eliteTotal}</div>
+                        </div>
+                        <div>
+                            <div className="text-muted-foreground">Avg Rent</div>
+                            <div className="font-bold text-accent">₪{eliteAvg}</div>
+                        </div>
+                        <div>
+                            <div className="text-muted-foreground">Top Elite</div>
+                            <div className="font-bold text-accent">₪{eliteMax}</div>
+                        </div>
                     </CardContent>
                 </Card>
 
