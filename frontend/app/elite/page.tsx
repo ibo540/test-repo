@@ -71,7 +71,10 @@ export default function ElitePage() {
                     <CardContent className="space-y-4">
                         <div className="flex justify-between border-b border-white/5 pb-2">
                             <span>Your Rent</span>
-                            <span className="font-bold text-success">₪{gameState?.allocation?.privateRents?.[socket?.id || ''] || gameState?.allocation?.privateRents?.[participant?.id || ''] || 0}</span>
+                            {/* Look up by Device ID (Stable) first, fall back to Socket ID */}
+                            <span className="font-bold text-success">
+                                ₪{gameState?.allocation?.privateRents?.[participant?.deviceId || ''] || gameState?.allocation?.privateRents?.[socket?.id || ''] || 0}
+                            </span>
                         </div>
                         <div className="flex justify-between border-b border-white/5 pb-2">
                             <span>Public Spending</span>

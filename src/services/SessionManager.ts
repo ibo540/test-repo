@@ -131,7 +131,8 @@ export class SessionManager {
                 const roster = Object.values(session.participants).filter(p => p.role === 'ELITE').map(p => ({
                     eliteId: p.id,
                     eliteName: p.name,
-                    elitePosition: p.elitePosition
+                    elitePosition: p.elitePosition,
+                    eliteDeviceId: p.deviceId // STABLE KEY for allocations
                 }));
                 socket.emit('elite_roster', roster);
                 // Also send full participant list just in case

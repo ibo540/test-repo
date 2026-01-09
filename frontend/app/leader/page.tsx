@@ -182,7 +182,7 @@ export default function LeaderPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {elites.map((elite: any) => (
-                            <div key={elite.eliteId} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
+                            <div key={elite.eliteDeviceId || elite.eliteId} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
                                 <div className="flex-1">
                                     <div className="font-medium">{elite.eliteName}</div>
                                     <div className="text-xs text-muted-foreground">{elite.elitePosition || 'Elite'}</div>
@@ -190,8 +190,8 @@ export default function LeaderPage() {
                                 <div className="w-24">
                                     <Input
                                         type="number"
-                                        value={rents[elite.eliteId] || ''}
-                                        onChange={(e) => handleRentChange(elite.eliteId, parseInt(e.target.value) || 0)}
+                                        value={rents[elite.eliteDeviceId] || ''} // Use Stable DeviceID
+                                        onChange={(e) => handleRentChange(elite.eliteDeviceId, parseInt(e.target.value) || 0)}
                                         className="text-right"
                                         placeholder="0"
                                     />
