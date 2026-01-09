@@ -12,12 +12,13 @@ import { motion } from "framer-motion";
 import { ShieldAlert, Users, Play, Lock } from "lucide-react";
 
 export default function JoinPage() {
-    const { isConnected, joinSession, participant, gameState } = useSocket() || {};
+    const { socket, isConnected, joinSession, participant, gameState } = useSocket() || {};
     const [code, setCode] = useState("");
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [isWaiting, setIsWaiting] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isDebug, setIsDebug] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -25,7 +26,24 @@ export default function JoinPage() {
         const params = new URLSearchParams(window.location.search);
         const urlCode = params.get("code");
         if (urlCode) setCode(urlCode);
+
+        // Client-side only check for debug mode to avoid hydration mismatch
+        setIsDebug(window.location.hostname === 'localhost' || window.location.search.includes('debug=true'));
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleError = (data: any) => {
+            setIsConnecting(false);
+            setError(data.message || "An error occurred");
+        };
+
+        socket.on('error', handleError);
+        return () => {
+            socket.off('error', handleError);
+        };
+    }, [socket]);
 
     useEffect(() => {
         if (participant?.role) {
