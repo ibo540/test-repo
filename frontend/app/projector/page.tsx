@@ -39,9 +39,9 @@ export default function ProjectorPage() {
                         <div className="text-8xl font-mono font-bold text-white tracking-widest">{gameState.sessionId}</div>
                     </div>
                     {joinUrl && (
-                        <div className="p-2 bg-white rounded">
+                        <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded cursor-pointer hover:opacity-80 transition-opacity" title="Click to open Join Page in new tab">
                             <QRCodeSVG value={joinUrl} size={128} />
-                        </div>
+                        </a>
                     )}
                 </div>
                 <div className="text-right">

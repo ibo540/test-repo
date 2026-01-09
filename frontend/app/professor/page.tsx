@@ -83,9 +83,9 @@ export default function ProfessorPage() {
                         {joinUrl && (
                             <div className="flex flex-col items-center pt-4">
                                 <span className="text-xs text-muted-foreground mb-2 uppercase">Join Code</span>
-                                <div className="bg-white p-2 rounded">
+                                <a href={joinUrl} target="_blank" rel="noopener noreferrer" className="bg-white p-2 rounded cursor-pointer hover:opacity-80 transition-opacity" title="Click to open Join Page in new tab">
                                     <QRCodeSVG value={joinUrl} size={128} />
-                                </div>
+                                </a>
                                 <p className="text-xs text-muted-foreground mt-2 text-center max-w-[200px]">
                                     Scan to join as Student. <br />
                                     Ensure you are on the same Wi-Fi.
