@@ -44,8 +44,16 @@ export default function JoinPage() {
     };
 
     const handleCreateNewIdentity = () => {
-        if (confirm("Create a NEW anonymous identity? You will need to enter a name and Join again.")) {
-            (useSocket() as any).createNewProfile();
+        // Direct action, no confirm to avoid mobile browser blocking
+        const socketCtx = useSocket() as any;
+        if (socketCtx && socketCtx.createNewProfile) {
+            socketCtx.createNewProfile();
+        } else {
+            console.error("Socket Context missing createNewProfile");
+            // Fallback manual
+            const newId = Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('auth_game_device_id', newId);
+            window.location.reload();
         }
     };
 
