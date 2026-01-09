@@ -50,9 +50,9 @@ export default function CitizenPage() {
     const myBenefit = Math.round(publicSpending * 0.2); // 20% rule
 
     const rents = gameState?.allocation?.privateRents ? Object.values(gameState.allocation.privateRents) : [];
-    // @ts-ignore
-    const eliteTotal = rents.reduce((a, b) => a + b, 0);
-    const eliteMax = rents.length > 0 ? Math.max(...rents as number[]) : 0;
+
+    const eliteTotal = (rents as number[]).reduce((a: number, b: number) => a + b, 0);
+    const eliteMax = rents.length > 0 ? Math.max(...(rents as number[])) : 0;
     const eliteAvg = rents.length > 0 ? Math.round(eliteTotal / rents.length) : 0;
 
     return (
