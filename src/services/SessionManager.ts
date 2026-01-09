@@ -116,6 +116,21 @@ export class SessionManager {
                 offer.accepted = true;
             }
         });
+
+        // ROBUST SYNC: Fetch Elite Roster on demand
+        socket.on('get_elite_roster', (payload: { sessionId: string }) => {
+            const session = this.sessions[payload.sessionId];
+            if (session) {
+                const roster = Object.values(session.participants).filter(p => p.role === 'ELITE').map(p => ({
+                    eliteId: p.id,
+                    eliteName: p.name,
+                    elitePosition: p.elitePosition
+                }));
+                socket.emit('elite_roster', roster);
+                // Also send full participant list just in case
+                socket.emit('participant_list', session.participants);
+            }
+        });
     }
 
     public handleDisconnect(socket: Socket) {
@@ -192,7 +207,12 @@ export class SessionManager {
                 phase: session.currentPhase,
                 round: session.currentRound,
                 allocation: session.lastAllocation, // Send recent data if needed
+                sessionId: session.id,
+                participants: session.participants // Explicitly include participants in state update
             });
+
+            // DOUBLE SAFETY: Emit participant list directly to this socket
+            socket.emit('participant_list', session.participants);
 
             if (participant.role) {
                 socket.emit('role_assigned', { role: participant.role, position: participant.elitePosition });

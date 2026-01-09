@@ -13,12 +13,44 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Lock, Banknote, ShieldAlert, CheckCircle2 } from "lucide-react";
 
 export default function LeaderPage() {
-    const { gameState, socket, participant } = useSocket() || {};
+    const { socket, gameState, isConnected } = useSocket() || {};
     const [publicSpending, setPublicSpending] = useState(0);
     const [coercion, setCoercion] = useState(0);
     const [rents, setRents] = useState<Record<string, number>>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [elites, setElites] = useState<any[]>([]); // ROBUST: Local state for elites
 
+    useEffect(() => {
+        if (socket && gameState?.sessionId) {
+            // ROBUST SYNC: Fetch explicit roster
+            socket.emit('get_elite_roster', { sessionId: gameState.sessionId });
+
+            socket.on('elite_roster', (roster: any[]) => {
+                console.log("Roster received:", roster);
+                setElites(roster);
+            });
+
+            return () => {
+                socket.off('elite_roster');
+            }
+        }
+    }, [socket, gameState?.sessionId]);
+
+    // Fallback: Sync with gameState participants if roster fetch pending
+    useEffect(() => {
+        if (elites.length === 0 && gameState?.participants) {
+            const derivedElites = Object.values(gameState.participants)
+                .filter((p: any) => p.role && p.role.toLowerCase() === 'elite')
+                .map((p: any) => ({
+                    eliteId: p.id,
+                    eliteName: p.name,
+                    elitePosition: p.elitePosition
+                }));
+            if (derivedElites.length > 0) setElites(derivedElites);
+        }
+    }, [gameState?.participants, elites.length]);
+
+    const remainingBudget = (gameState?.budget || 100) - publicSpending - Object.values(rents).reduce((a, b) => a + b, 0);
     // Initialize rents based on participants (Elites)
     useEffect(() => {
         if (gameState?.participants) {
@@ -149,26 +181,24 @@ export default function LeaderPage() {
                         <CardDescription>Buy Elite loyalty. Prevent coups.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {gameState?.participants && Object.values(gameState.participants)
-                            .filter((p: any) => p.role && p.role.toLowerCase() === 'elite')
-                            .map((elite: any) => (
-                                <div key={elite.id} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
-                                    <div className="flex-1">
-                                        <div className="font-medium">{elite.name}</div>
-                                        <div className="text-xs text-muted-foreground">{elite.elitePosition || 'Elite'}</div>
-                                    </div>
-                                    <div className="w-24">
-                                        <Input
-                                            type="number"
-                                            value={rents[elite.id] || ''}
-                                            onChange={(e) => handleRentChange(elite.id, parseInt(e.target.value) || 0)}
-                                            className="text-right"
-                                            placeholder="0"
-                                        />
-                                    </div>
+                        {elites.map((elite: any) => (
+                            <div key={elite.eliteId} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
+                                <div className="flex-1">
+                                    <div className="font-medium">{elite.eliteName}</div>
+                                    <div className="text-xs text-muted-foreground">{elite.elitePosition || 'Elite'}</div>
                                 </div>
-                            ))}
-                        {(!gameState?.participants || Object.values(gameState.participants).filter((p: any) => p.role?.toLowerCase() === 'elite').length === 0) && (
+                                <div className="w-24">
+                                    <Input
+                                        type="number"
+                                        value={rents[elite.eliteId] || ''}
+                                        onChange={(e) => handleRentChange(elite.eliteId, parseInt(e.target.value) || 0)}
+                                        className="text-right"
+                                        placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                        {elites.length === 0 && (
                             <p className="text-muted-foreground text-center py-4">No Elites found.</p>
                         )}
                     </CardContent>
