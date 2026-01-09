@@ -22,7 +22,8 @@ export default function ElitePage() {
     };
 
     // My Offer?
-    const myOffer = gameState?.participants?.[socket?.id || '']?.currentOffer; // Backend needs to send this specifically
+    // const myOffer = gameState?.participants?.[socket?.id || '']?.currentOffer; 
+    // Backend needs to send this specifically
     // Currently backend sends 'externalOffers' list? Or private update?
     // Backend "Private updates to specific devices". 
     // We need to ensuring receiving 'external_offer' event or checking state.
