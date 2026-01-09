@@ -149,26 +149,28 @@ export default function LeaderPage() {
                         <CardDescription>Buy Elite loyalty. Prevent coups.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {Object.entries(rents).map(([id, amount]) => {
-                            const elite = (gameState.participants as Record<string, any>)?.[id];
-                            return (
-                                <div key={id} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
+                        {gameState?.participants && Object.values(gameState.participants)
+                            .filter((p: any) => p.role && p.role.toLowerCase() === 'elite')
+                            .map((elite: any) => (
+                                <div key={elite.id} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
                                     <div className="flex-1">
-                                        <div className="font-medium">{elite?.name || id}</div>
-                                        <div className="text-xs text-muted-foreground">{elite?.elitePosition || 'Elite'}</div>
+                                        <div className="font-medium">{elite.name}</div>
+                                        <div className="text-xs text-muted-foreground">{elite.elitePosition || 'Elite'}</div>
                                     </div>
                                     <div className="w-24">
                                         <Input
                                             type="number"
-                                            value={amount}
-                                            onChange={(e) => handleRentChange(id, parseInt(e.target.value) || 0)}
+                                            value={rents[elite.id] || ''}
+                                            onChange={(e) => handleRentChange(elite.id, parseInt(e.target.value) || 0)}
                                             className="text-right"
+                                            placeholder="0"
                                         />
                                     </div>
                                 </div>
-                            );
-                        })}
-                        {Object.keys(rents).length === 0 && <p className="text-muted-foreground text-center py-4">No Elites found.</p>}
+                            ))}
+                        {(!gameState?.participants || Object.values(gameState.participants).filter((p: any) => p.role?.toLowerCase() === 'elite').length === 0) && (
+                            <p className="text-muted-foreground text-center py-4">No Elites found.</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>
