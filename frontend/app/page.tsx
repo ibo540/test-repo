@@ -110,8 +110,7 @@ export default function JoinPage() {
                         </CardContent>
                     </Card>
                 </div>
-            </div>
-            </AppShell >
+            </AppShell>
         );
     }
 
@@ -181,30 +180,35 @@ export default function JoinPage() {
                             </CardHeader>
                             <CardContent className="py-3 space-y-2">
                                 <Button
+                                    type="button"
                                     variant="destructive"
                                     size="sm"
                                     className="w-full"
-                                    onClick={() => (useSocket() as any).createNewProfile()}
+                                    onClick={handleCreateNewIdentity}
                                 >
                                     + Create New Identity
                                 </Button>
 
-                                <div className="text-xs text-center text-muted-foreground pt-2">Saved Profiles:</div>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="text-xs text-center text-muted-foreground pt-2">
+                                    Current ID: {typeof window !== 'undefined' ? localStorage.getItem('auth_game_device_id')?.slice(0, 6) : '...'}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 mt-2">
                                     {typeof window !== 'undefined' && Object.entries(JSON.parse(localStorage.getItem('auth_game_profiles') || '{}')).map(([pid, pname]: any) => (
                                         <Button
                                             key={pid}
-                                            variant="secondary"
+                                            variant={localStorage.getItem('auth_game_device_id') === pid ? "default" : "secondary"}
                                             size="sm"
                                             className="text-xs truncate"
                                             onClick={() => (useSocket() as any).switchProfile(pid)}
                                         >
-                                            {pname}
+                                            {pname} {localStorage.getItem('auth_game_device_id') === pid && "(You)"}
                                         </Button>
                                     ))}
                                 </div>
                             </CardContent>
                         </Card>
+                    )}
                 </div>
             </div>
         </AppShell>
