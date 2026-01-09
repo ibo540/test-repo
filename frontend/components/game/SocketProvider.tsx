@@ -44,11 +44,16 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const [participant, setParticipant] = useState<any | null>(null);
 
     // Helpers for Device ID
+    const generateId = () => {
+        // Fallback for environments where crypto is not available
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    };
+
     const getDeviceId = () => {
         if (typeof window === 'undefined') return '';
         let id = localStorage.getItem('auth_game_device_id');
         if (!id) {
-            id = crypto.randomUUID();
+            id = generateId();
             localStorage.setItem('auth_game_device_id', id);
         }
         return id;
@@ -60,7 +65,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const createNewProfile = () => {
-        const newId = crypto.randomUUID();
+        const newId = generateId();
         localStorage.setItem('auth_game_device_id', newId);
         window.location.reload();
     };

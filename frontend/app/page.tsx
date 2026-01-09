@@ -40,13 +40,13 @@ export default function JoinPage() {
         if (!code) { setError("Session Code is required"); return; }
         if (!name) { setError("Name is required"); return; }
 
-        // Mock session ID validation on client? No, sends to server.
-        // We assume create_session happened elsewhere for now.
-        // User is STUDENT usually.
-
         joinSession?.(code.toUpperCase(), name);
-        // We wait for 'joined' event or 'role_assigned'. 
-        // SocketProvider optimistically sets participant.
+    };
+
+    const handleCreateNewIdentity = () => {
+        if (confirm("Create a NEW anonymous identity? You will need to enter a name and Join again.")) {
+            (useSocket() as any).createNewProfile();
+        }
     };
 
     // If we are waiting for role assignment
