@@ -100,14 +100,13 @@ export default function JoinPage() {
                                 <span className="font-mono font-bold text-white tracking-widest">{code || gameState?.sessionId || '---'}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Status</span>
-                                    <span className="text-warning">Lobby Open</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Players</span>
-                                    <span>{gameState?.participants ? Object.keys(gameState.participants).length : '-'}</span>
-                                </div>
+                                <span className="text-muted-foreground">Status</span>
+                                <span className="text-warning">Lobby Open</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Players</span>
+                                <span>{gameState?.participants ? Object.keys(gameState.participants).length : '-'}</span>
+                            </div>
                         </CardContent>
                     </Card>
                     )}
