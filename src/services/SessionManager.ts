@@ -39,11 +39,8 @@ export class SessionManager {
                     // CRITICAL FIX: Broadcast updated participant list to everyone (especially Leader)
                     this.io.to(payload.sessionId).emit('participant_list', session.participants);
                 } else if (session.currentRound === 0) {
-                    // Initial role assignment at start of game (if handled here)
-                    // If roles are assigned by gameEngine.startRound, we need to broadcast there too.
-                    // But usually roles are pre-assigned or assigned here. 
-                    // Assuming initial start does assignment:
-                    this.gameEngine.assignInitialRoles(session);
+                    // Initial role assignment at start of game
+                    this.roleService.assignInitialRoles(session);
                     Object.values(session.participants).forEach(p => {
                         this.io.to(p.id).emit('role_assigned', { role: p.role, position: p.elitePosition });
                     });
@@ -206,7 +203,7 @@ export class SessionManager {
             socket.emit('state_update', {
                 phase: session.currentPhase,
                 round: session.currentRound,
-                allocation: session.lastAllocation, // Send recent data if needed
+                allocation: session.allocation, // Send recent data if needed
                 sessionId: session.id,
                 participants: session.participants // Explicitly include participants in state update
             });

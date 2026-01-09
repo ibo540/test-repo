@@ -13,6 +13,7 @@ interface GameState {
     phaseEndTime?: number;
     allocation?: any;
     participants?: any[];
+    budget?: number; // Added for Leader view
     // Add other fields as needed
 }
 
