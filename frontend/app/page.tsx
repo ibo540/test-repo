@@ -132,8 +132,8 @@ export default function JoinPage() {
                     </CardFooter>
                 </Card>
 
-                <div className="mt-8 max-w-md w-full">
-                    <div className="text-xs text-center text-muted-foreground mb-4 uppercase tracking-widest">Or login as</div>
+                <div className="mt-8 max-w-md w-full space-y-4">
+                    <div className="text-xs text-center text-muted-foreground uppercase tracking-widest">Or login as</div>
                     <div className="grid grid-cols-2 gap-4">
                         <Button variant="outline" className="w-full" onClick={() => router.push('/professor')}>
                             Professor
@@ -142,6 +142,38 @@ export default function JoinPage() {
                             Projector
                         </Button>
                     </div>
+
+                    {/* Developer / Testing Mode: Profile Switcher */}
+                    <Card className="border-dashed border-white/20 bg-black/20">
+                        <CardHeader className="py-3">
+                            <CardTitle className="text-sm font-mono text-muted-foreground">DEBUG: MULTI-ROLE TESTER</CardTitle>
+                        </CardHeader>
+                        <CardContent className="py-3 space-y-2">
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => (useSocket() as any).createNewProfile()}
+                            >
+                                + Create New Identity
+                            </Button>
+
+                            <div className="text-xs text-center text-muted-foreground pt-2">Saved Profiles:</div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {typeof window !== 'undefined' && Object.entries(JSON.parse(localStorage.getItem('auth_game_profiles') || '{}')).map(([pid, pname]: any) => (
+                                    <Button
+                                        key={pid}
+                                        variant="secondary"
+                                        size="sm"
+                                        className="text-xs truncate"
+                                        onClick={() => (useSocket() as any).switchProfile(pid)}
+                                    >
+                                        {pname}
+                                    </Button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AppShell>

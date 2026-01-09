@@ -23,6 +23,8 @@ interface SocketContextType {
     participant: any | null; // My identity
     createSession: () => void;
     joinSession: (sessionId: string, name: string) => void;
+    createNewProfile: () => void;
+    switchProfile: (profileId: string) => void;
     // Add other actions
 }
 
