@@ -5,16 +5,20 @@ import { RoleService } from './RoleService';
 
 import { GameEngine } from './GameEngine';
 
+import { StorageService } from './StorageService';
+
 export class SessionManager {
     private sessions: Record<string, Session> = {};
     private io: Server;
     private roleService: RoleService;
     private gameEngine: GameEngine;
+    private storage: StorageService;
 
     constructor(io: Server) {
         this.io = io;
         this.roleService = new RoleService();
         this.gameEngine = new GameEngine(io);
+        this.storage = new StorageService();
     }
 
     public handleConnection(socket: Socket) {
@@ -31,6 +35,9 @@ export class SessionManager {
                 // Check for Role Reshuffle based on previous round outcome
                 if (session.lastRoundOutcome?.leaderRemoved) {
                     this.roleService.reshuffleRoles(session);
+                    // PERSIST ROLES
+                    this.storage.saveRoles(session.id, session.currentRound, session.participants);
+
                     // Notify updated roles to individuals
                     Object.values(session.participants).forEach(p => {
                         this.io.to(p.id).emit('role_assigned', { role: p.role, position: p.elitePosition });
@@ -41,6 +48,9 @@ export class SessionManager {
                 } else if (session.currentRound === 0) {
                     // Initial role assignment at start of game
                     this.roleService.assignInitialRoles(session);
+                    // PERSIST ROLES
+                    this.storage.saveRoles(session.id, 0, session.participants);
+
                     Object.values(session.participants).forEach(p => {
                         this.io.to(p.id).emit('role_assigned', { role: p.role, position: p.elitePosition });
                     });

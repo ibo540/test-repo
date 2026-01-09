@@ -4,6 +4,8 @@ import { OfferService } from './OfferService';
 import { ResolutionService } from './ResolutionService';
 import { ScoringService } from './ScoringService';
 
+import { StorageService } from './StorageService';
+
 export class GameEngine {
     private io: Server;
     private offerService: OfferService;
@@ -23,11 +25,14 @@ export class GameEngine {
         [GamePhase.GAME_OVER]: 0
     };
 
+    private storage: StorageService;
+
     constructor(io: Server) {
         this.io = io;
         this.offerService = new OfferService();
         this.resolutionService = new ResolutionService();
         this.scoringService = new ScoringService();
+        this.storage = new StorageService();
     }
 
     public startRound(session: Session) {
@@ -37,6 +42,9 @@ export class GameEngine {
         if (session.currentRound > 1) {
             session.pressureIndex++;
         }
+
+        // PERSIST: Save session start state
+        this.storage.saveSession(session);
 
         // Phase selection: Round 1 -> Allocation directly. Round 2+ -> Policy Dilemma.
         if (session.currentRound > 1) {
@@ -61,6 +69,8 @@ export class GameEngine {
             }
         }
 
+        this.storage.saveSession(session);
+
         // Reset round state
         session.allocation = undefined;
         session.eliteVotes = {};
@@ -76,6 +86,7 @@ export class GameEngine {
         if (optionId === 'A') session.budget = 80;
         // Move to Allocation
         session.currentPhase = GamePhase.ALLOCATION;
+        this.storage.saveSession(session); // Persist
         this.emitState(session);
         const leader = Object.values(session.participants).find(p => p.role === 'LEADER');
         if (leader) {
@@ -97,6 +108,12 @@ export class GameEngine {
         }
 
         session.allocation = allocation;
+
+        // PERSIST: Write allocation to DB
+        const leader = Object.values(session.participants).find(p => p.role === 'LEADER');
+        // @ts-ignore
+        this.storage.saveAllocation(session.id, session.currentRound, leader?.id || 'unknown', allocation);
+        this.storage.saveSession(session);
 
         // Move to Reveal
         this.transitionTo(session, GamePhase.ALLOCATION_REVEAL);
