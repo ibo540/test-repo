@@ -112,10 +112,17 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         });
 
         socketInstance.on('state_update', (data) => {
-            setGameState(prev => ({ ...prev, ...data }));
+            console.log("Received state_update:", data);
+            setGameState(prev => ({
+                ...prev,
+                ...data,
+                // Ensure sessionId is updated if present
+                sessionId: data.sessionId || prev.sessionId
+            }));
         });
 
         socketInstance.on('participant_list', (data) => {
+            console.log("Received participant_list:", data);
             setGameState(prev => ({
                 ...prev,
                 participants: data
