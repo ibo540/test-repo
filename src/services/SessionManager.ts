@@ -31,10 +31,23 @@ export class SessionManager {
                 // Check for Role Reshuffle based on previous round outcome
                 if (session.lastRoundOutcome?.leaderRemoved) {
                     this.roleService.reshuffleRoles(session);
-                    // Notify updated roles
+                    // Notify updated roles to individuals
                     Object.values(session.participants).forEach(p => {
                         this.io.to(p.id).emit('role_assigned', { role: p.role, position: p.elitePosition });
                     });
+
+                    // CRITICAL FIX: Broadcast updated participant list to everyone (especially Leader)
+                    this.io.to(payload.sessionId).emit('participant_list', session.participants);
+                } else if (session.currentRound === 0) {
+                    // Initial role assignment at start of game (if handled here)
+                    // If roles are assigned by gameEngine.startRound, we need to broadcast there too.
+                    // But usually roles are pre-assigned or assigned here. 
+                    // Assuming initial start does assignment:
+                    this.gameEngine.assignInitialRoles(session);
+                    Object.values(session.participants).forEach(p => {
+                        this.io.to(p.id).emit('role_assigned', { role: p.role, position: p.elitePosition });
+                    });
+                    this.io.to(payload.sessionId).emit('participant_list', session.participants);
                 }
 
                 this.gameEngine.startRound(session);
