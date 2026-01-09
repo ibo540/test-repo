@@ -1,15 +1,24 @@
 "use client"
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AppShell } from "@/components/game/AppShell";
 import { TopBar } from "@/components/game/TopBar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/components/game/SocketProvider";
 import { Play, Lock, SkipForward, RefreshCw } from "lucide-react";
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function ProfessorPage() {
     const { gameState, createSession, socket } = useSocket() || {};
+    const [joinUrl, setJoinUrl] = useState("");
+
+    // Update Join URL when session/window exists
+    useEffect(() => {
+        if (typeof window !== 'undefined' && gameState?.sessionId) {
+            setJoinUrl(`${window.location.protocol}//${window.location.host}/?code=${gameState.sessionId}`);
+        }
+    }, [gameState?.sessionId]);
 
     // Actions
     const handleCreateSession = () => createSession?.();
@@ -66,18 +75,6 @@ export default function ProfessorPage() {
                             <span className="text-muted-foreground">Players</span>
                             <span className="font-mono text-xl">{gameState.participants ? Object.keys(gameState.participants).length : 0}</span>
                         </div>
-                        import {QRCodeSVG} from 'qrcode.react';
-
-                        // ... inside component ...
-                        const [joinUrl, setJoinUrl] = React.useState("");
-
-    React.useEffect(() => {
-        if (typeof window !== 'undefined' && gameState?.sessionId) {
-                            setJoinUrl(`${window.location.protocol}//${window.location.host}/?code=${gameState.sessionId}`);
-        }
-    }, [gameState?.sessionId]);
-
-                        // ... inside Session Info CardContent ...
                         <div className="flex justify-between border-b border-border pb-2">
                             <span className="text-muted-foreground">Phase</span>
                             <span className="font-mono text-xl text-accent">{gameState.phase}</span>
