@@ -150,7 +150,7 @@ export default function LeaderPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {Object.entries(rents).map(([id, amount]) => {
-                            const elite = gameState.participants?.[id];
+                            const elite = (gameState.participants as Record<string, any>)?.[id];
                             return (
                                 <div key={id} className="flex items-center gap-4 border-b border-white/5 pb-4 last:border-0">
                                     <div className="flex-1">
