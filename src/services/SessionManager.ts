@@ -172,6 +172,19 @@ export class SessionManager {
 
         // Notify professor
         this.io.to(sessionId).emit('participant_list', Object.values(session.participants));
+
+        // Sync State on Reconnect/Late Join
+        if (session.currentPhase !== GamePhase.LOBBY) {
+            socket.emit('state_update', {
+                phase: session.currentPhase,
+                round: session.currentRound,
+                allocation: session.lastAllocation, // Send recent data if needed
+            });
+
+            if (participant.role) {
+                socket.emit('role_assigned', { role: participant.role, position: participant.elitePosition });
+            }
+        }
     }
 
     private lockSession(socket: Socket, sessionId: string) {
