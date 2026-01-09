@@ -43,6 +43,28 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
     const [participant, setParticipant] = useState<any | null>(null);
 
+    // Helpers for Device ID
+    const getDeviceId = () => {
+        if (typeof window === 'undefined') return '';
+        let id = localStorage.getItem('auth_game_device_id');
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem('auth_game_device_id', id);
+        }
+        return id;
+    };
+
+    const switchProfile = (profileId: string) => {
+        localStorage.setItem('auth_game_device_id', profileId);
+        window.location.reload();
+    };
+
+    const createNewProfile = () => {
+        const newId = crypto.randomUUID();
+        localStorage.setItem('auth_game_device_id', newId);
+        window.location.reload();
+    };
+
     useEffect(() => {
         // Dynamic connection string
         const protocol = window.location.protocol;
@@ -100,9 +122,16 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const joinSession = (sessionId: string, name: string) => {
-        socket?.emit('join_session', { sessionId, name });
+        const deviceId = getDeviceId();
+
+        // Save profile metadata for switcher
+        const profiles = JSON.parse(localStorage.getItem('auth_game_profiles') || '{}');
+        profiles[deviceId] = name;
+        localStorage.setItem('auth_game_profiles', JSON.stringify(profiles));
+
+        socket?.emit('join_session', { sessionId, name, deviceId });
         // Optimistic update identity?
-        setParticipant({ name });
+        setParticipant({ name, deviceId });
     };
 
     return (
@@ -112,7 +141,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             gameState,
             participant,
             createSession,
-            joinSession
+            joinSession,
+            createNewProfile,
+            switchProfile
         }}>
             {children}
         </SocketContext.Provider>
